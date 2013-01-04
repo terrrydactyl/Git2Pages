@@ -3,3 +3,9 @@
 *.kate-swp
 .*.swp
 
+# IntelliJ #
+############
+*.iml
+*.ipr
+*.iws
+.idea/
