@@ -13,10 +13,10 @@ $wgExtensionCredits['parserhook'][] = array(
 );
 
 // Load the extension body to call the static function in the hook
-$wgAutoloadClasses['GitRepoExtensionHooks'] = "$dir/Git2Pages.body.php";
+$wgAutoloadClasses['Git2PagesHooks'] = __DIR__ . '/Git2Pages.body.php';
 
 // The function that will initialize the parser function
-$wgHooks['ParserFirstCallInit'][] = 'GitRepoExtensionHooks::GitRepoExtensionSetup';
+$wgHooks['ParserFirstCallInit'][] = 'Git2PagesHooks::Git2PagesSetup';
 
 // Allow translation of the parser function name
 $wgExtensionMessagesFiles['Git2Pages'] = __DIR__ . '/Git2Pages.i18n.magic.php';
