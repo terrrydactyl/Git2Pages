@@ -3,10 +3,11 @@
  * Execution code
  */
 
-class GitRepoExtensionHooks {
-	public static function GitRepoExtensionSetup() {
+class Git2PagesHooks {
+	public static function Git2PagesSetup( $parser ) {
 
-		$parser -> setFunctionHook( 'snippet', 'GitRepoExtensionHooks::PullContentFromRepo' );
+        $parser->setFunctionHook( 'snippet', array( 'Git2PagesHooks', 'PullContentFromRepo' ) );
+        return true;
 	}
 
     /**
