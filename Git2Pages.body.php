@@ -5,26 +5,44 @@
 
 class Git2PagesHooks {
 	public static function Git2PagesSetup( $parser ) {
-
-        $parser->setFunctionHook( 'snippet', array( 'Git2PagesHooks', 'PullContentFromRepo' ) );
-        return true;
+		$parser->setFunctionHook( 'snippet', array( 'Git2PagesHooks', 'PullContentFromRepo' ) );
+		return true;
 	}
 
-    /**
-     * Pulls the content from a repository
-     *
-     * @param Parser $parser a parser instance
-     * @param string $repository The Git repository to fetch content from
-     * @param string $file The file to fetch content from
-     * @param int $start The first snippet line number
-     * @param int $end The last snippet line number
-     * @return string The output of the parser function
-     */
+	/**
+	 * Converts an array of values in form [0] => "name=value" into a real
+	 * associative array in form [name] => value
+	 *
+	 * @param array string $options
+	 * @return array $results
+	 */
+	static function extractOptions( array $options ) {
+		$results = array();
+		foreach ( $options as $option ) {
+			$pair = explode( '=', $option );
+			if ( count( $pair ) == 2 ) {
+				$name = trim( $pair[0] );
+				$value = trim( $pair[1] );
+				$results[$name] = $value;
+			}
+		}
+		return $results;
+	}
 
-    public static function PullContentFromRepo( $parser, $repository = '',  $file = '', $start = '', $end = '' ) {
-
-		$output = "Pulling content from file $file in repository $repository starting at $start and ending at $end...";
-
+	/**
+	 * Pulls the content from a repository
+	 *
+	 * @param $parser will contain an array of params. The first element is
+	 * the Parser object. The rest of the elements will be the user input
+	 * values that will be converted.
+	 */
+	public static function PullContentFromRepo( $parser ) {
+		$opts = array();
+		for ( $i = 1; $i < func_num_args(); $i++ ) {
+			$opts[] = func_get_arg( $i );
+		}
+		$options = Git2PagesHooks::extractOptions( $opts );
+		$output = "Pulling content from file {$options['file']} in repository {$options['repository']} from branch {$options['branch']} starting at {$options['start']} and ending at {$options['end']}...";
 		return $output;
-        }
+	}
 }
