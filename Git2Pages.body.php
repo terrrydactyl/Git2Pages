@@ -37,12 +37,22 @@ class Git2PagesHooks {
 	 * values that will be converted.
 	 */
 	public static function PullContentFromRepo( $parser ) {
+		global $wgGit2PagesDataDir;
 		$opts = array();
 		for ( $i = 1; $i < func_num_args(); $i++ ) {
 			$opts[] = func_get_arg( $i );
 		}
 		$options = Git2PagesHooks::extractOptions( $opts );
-		$output = "Pulling content from file {$options['file']} in repository {$options['repository']} from branch {$options['branch']} starting at {$options['start']} and ending at {$options['end']}...";
-		return $output;
+		$wgGit2PagesDataDir = sys_get_temp_dir();
+		chdir( $wgGit2PagesDataDir );
+		$url = $options['repository'];
+		if( !file_exists( md5( $url ) ) ) {
+			wfShellExec( 'git clone ' . wfEscapeShellArg( $url ) . ' ' . $wgGit2PagesDataDir . DIRECTORY_SEPARATOR . md5( $url ), $limit=1000000 );
+			wfDebug( 'Git2Pages: Cloned a git repository.' );
+		}
+		else {
+			wfDebug( 'Git2Pages: git repository exists, didn\'t clone.' );
+		}
+		return wfShellExec( 'ls' );
 	}
 }
