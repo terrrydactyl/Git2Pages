@@ -2,6 +2,7 @@
 /**
  * Execution code
  */
+include 'GitRepository.php';
 
 class Git2PagesHooks {
 	public static function Git2PagesSetup( $parser ) {
@@ -32,9 +33,7 @@ class Git2PagesHooks {
 	/**
 	 * Pulls the content from a repository
 	 *
-	 * @param $parser will contain an array of params. The first element is
-	 * the Parser object. The rest of the elements will be the user input
-	 * values that will be converted.
+	 * @param $parser will contain an array of params. The first element is the Parser object. The rest of the elements will be the user input values that will be converted.
 	 */
 	public static function PullContentFromRepo( $parser ) {
 		global $wgGit2PagesDataDir;
@@ -44,15 +43,20 @@ class Git2PagesHooks {
 		}
 		$options = Git2PagesHooks::extractOptions( $opts );
 		$wgGit2PagesDataDir = sys_get_temp_dir();
-		chdir( $wgGit2PagesDataDir );
 		$url = $options['repository'];
-		if( !file_exists( md5( $url ) ) ) {
-			wfShellExec( 'git clone ' . wfEscapeShellArg( $url ) . ' ' . $wgGit2PagesDataDir . DIRECTORY_SEPARATOR . md5( $url ), $limit=1000000 );
-			wfDebug( 'Git2Pages: Cloned a git repository.' );
+		$gitFolder =  $wgGit2PagesDataDir . DIRECTORY_SEPARATOR . md5( $url );
+		if( !isset( $options['repository'] ) || !isset( $options['filename'] ) ) {
+			return 'repository and/or filename not defined.';
+		}
+		$gitRepo = new GitRepository( $url );
+		$gitRepo->CloneGitRepo( $url, $gitFolder );
+		if( isset( $options['branch'] ) ) {
+			$gitRepo->GitCheckoutBranch( wfEscapeShellArg($options['branch'] ), $gitFolder );
 		}
 		else {
-			wfDebug( 'Git2Pages: git repository exists, didn\'t clone.' );
+			$gitRepo->GitCheckoutBranch( 'master', $gitFolder );
 		}
-		return wfShellExec( 'ls' );
+		$gitRepo->FindAndReadFile( $options['filename'], $gitFolder );
+		return wfShellExec( 'ls ' . $gitFolder );
 	}
 }
