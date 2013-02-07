@@ -31,6 +31,16 @@ class Git2PagesHooks {
 	}
 
 	/**
+	 * Checks if value is an int whether it is type string or int.
+	 *
+	 * @param $mixed contains value to be checked
+	 * @return bool true if it is an int value, false otherwise
+	 */
+	static function isint( $mixed ) {
+		return ( preg_match( '/^\d*$/'  , $mixed) == 1 );
+	}
+
+	/**
 	 * Pulls the content from a repository
 	 *
 	 * @param $parser will contain an array of params. The first element is the Parser object. The rest of the elements will be the user input values that will be converted.
@@ -42,7 +52,6 @@ class Git2PagesHooks {
 			$opts[] = func_get_arg( $i );
 		}
 		$options = Git2PagesHooks::extractOptions( $opts );
-		$wgGit2PagesDataDir = sys_get_temp_dir();
 		$url = $options['repository'];
 		$gitFolder =  $wgGit2PagesDataDir . DIRECTORY_SEPARATOR . md5( $url );
 		if( !isset( $options['repository'] ) || !isset( $options['filename'] ) ) {
@@ -56,7 +65,20 @@ class Git2PagesHooks {
 		else {
 			$gitRepo->GitCheckoutBranch( 'master', $gitFolder );
 		}
-		$gitRepo->FindAndReadFile( $options['filename'], $gitFolder );
-		return wfShellExec( 'ls ' . $gitFolder );
+		$startLine = isset( $options['startline'] ) ? $options['startline'] : 1;
+		$endLine = isset( $options['endline'] ) ? $options['endline'] : -1;
+		if( !self::isint( $startLine ) ) {
+			return '<strong class="error">startline is not an integer.</strong>';
+		}
+		if( $endLine != -1 && !self::isint( $endLine ) ) {
+			return '<strong class="error">endline is not an integer.</strong>';
+		}
+		try {
+			$fileContents = $gitRepo->FindAndReadFile( $options['filename'], $gitFolder, $startLine, $endLine );
+			$output = '<pre>' . htmlspecialchars( $fileContents ) . '</pre>';
+		} catch( Exception $ex ) {
+			$output = '<strong class="error">' . $ex->getMessage() . '</strong>';
+		}
+		return array( $output, 'nowiki' => true, 'noparse' => true, 'isHTML' => true );
 	}
 }

@@ -12,7 +12,6 @@ class GitRepository {
 	 */
 	function __construct( $gitUrl ) {
 		$this->gitUrl = $gitUrl;
-		$branch = 'master';
 	}
 
 	/**
@@ -24,10 +23,10 @@ class GitRepository {
 	static function CloneGitRepo( $url, $gitFolder ) {
 		if( !file_exists( $gitFolder ) ) {
 			wfShellExec( 'git clone ' . wfEscapeShellArg( $url ) . ' ' . $gitFolder );
-			wfDebug( 'Git2Pages: Cloned a git repository.' );
+			wfDebug( 'GitRepository: Cloned a git repository.' );
 		}
 		else {
-			wfDebug( 'Git2Pages: git repository exists, didn\'t clone.' );
+			wfDebug( 'GitRepository: git repository exists, didn\'t clone.' );
 		}
 	}
 
@@ -39,7 +38,7 @@ class GitRepository {
 	 */
 	function GitCheckoutBranch( $branch, $gitFolder ) {
 		wfShellExec( 'git --git-dir=' . $gitFolder . '/.git --work-tree=' . $gitFolder . ' checkout ' . $branch );
-		wfDebug( 'Git2Pages: Changed to branch ' . $branch );
+		wfDebug( 'GitRepository: Changed to branch ' . $branch );
 	}
 
 	/**
@@ -48,10 +47,20 @@ class GitRepository {
 	 * @param string $gitFolder contains the path to  git repo folder
 	 * @param array $options contains user inputs
 	 */
-	function FindAndReadFile( $filename, $gitFolder ) {
+	function FindAndReadFile( $filename, $gitFolder, $startLine = 1, $endLine = -1 ) {
 		$filePath = $gitFolder . DIRECTORY_SEPARATOR . $filename;
-		if( !file_exists( $filePath ) ) {
-			wfDebug( 'Git2Pages: File does not exist' );
+		if( $fileArray = file( $filePath ) ) {
+			if( $endLine == -1 ) {
+				$lineBlock = array_slice( $fileArray, $startLine - 1 );
+			} else {
+				$offset = $endLine - $startLine;
+				$lineBlock = array_slice( $fileArray, $startLine - 1, $offset + 1 );
+			}
+			return implode( $lineBlock );
+		}
+		else {
+			wfDebug( 'GitRepository: File does not exist or is unreadable' );
+			throw new Exception( "File does not exist or is unreadable." );
 		}
 	}
 }

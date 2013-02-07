@@ -20,3 +20,6 @@ $wgHooks['ParserFirstCallInit'][] = 'Git2PagesHooks::Git2PagesSetup';
 
 // Allow translation of the parser function name
 $wgExtensionMessagesFiles['Git2Pages'] = __DIR__ . '/Git2Pages.i18n.magic.php';
+
+// Options default values
+$wgGit2PagesDataDir = sys_get_temp_dir();
